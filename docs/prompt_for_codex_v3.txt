@@ -1,0 +1,121 @@
+Продолжи работу над текущей рабочей версией игры Flipp Bull и используй расширенный asset pack v3.
+
+ВАЖНО:
+- Не пересоздавай игру с нуля.
+- Не ломай механику tap-to-fly.
+- Не ломай ник игрока.
+- Не ломай localStorage.
+- Не ломай лидерборд.
+- Не ломай победу на 30 очках.
+- Не ломай экран награды.
+- Это визуальный апгрейд, а не новая игра.
+
+Используй docs/visual_reference_sheet.png как визуальный ориентир:
+- центральная игра;
+- герой-баночка;
+- препятствия stage-tech;
+- parallax-фоны;
+- UI элементы;
+- экраны: ник, старт, проигрыш, победа, награда активирована.
+
+Главный фон:
+- assets/backgrounds/bg_main_tyumen_openair_approved.png
+
+Это основной утверждённый фон. Не заменять, не ротировать, не использовать слайдшоу.
+
+Дополнительные parallax layers:
+- assets/backgrounds/bg_layer_far_bridge_skyline.png
+- assets/backgrounds/bg_layer_mid_city_openair.png
+- assets/backgrounds/bg_layer_front_crowd_barrier.png
+
+Используй их только для глубины:
+- far layer движется медленнее всего;
+- mid layer чуть быстрее;
+- front layer быстрее, но аккуратно.
+Если будет перегружено, оставь только main background.
+
+Hero:
+- assets/hero/hero_can_idle.png
+- assets/hero/hero_can_flap_up.png
+- assets/hero/hero_can_falling.png
+
+Использование:
+- idle для обычного полёта;
+- flap_up при импульсе вверх;
+- falling при падении;
+- можно также оставить один sprite и делать rotation через Canvas.
+Героя рисовать внутри Canvas через drawImage.
+Не вставлять как HTML-картинку.
+Размер в игре сделать читаемым, примерно 64–86 px по ширине в game frame.
+Hitbox сделать меньше визуального размера.
+
+Obstacles:
+- assets/obstacles/obstacle_stage_gate_full.png
+- assets/obstacles/obstacle_speaker_tower_game.png
+- assets/obstacles/obstacle_speaker_tower_hanging.png
+- assets/obstacles/obstacle_neon_portal_ring.png
+- assets/obstacles/obstacle_laser_barrier.svg
+- assets/obstacles/obstacle_stage_column_canvas_reference.svg
+
+Использование:
+- stage_gate_full как premium gate / main obstacle;
+- speaker_tower_game как подвесная колонка / obstacle;
+- speaker_tower_hanging как верхний obstacle;
+- neon_portal_ring как special gate;
+- laser_barrier как редкий hazard;
+- stage_column_canvas_reference как референс для процедурных колонн через Canvas.
+
+UI:
+- assets/ui/components/flipp_bull_logo.svg
+- assets/ui/components/progress_bar_frame.svg
+- assets/ui/components/glass_panel.svg
+- assets/ui/components/qr_placeholder.svg
+- assets/ui/icons/icon_pause.svg
+- assets/ui/icons/icon_lightning.svg
+- assets/ui/icons/icon_crown.svg
+- assets/ui/icons/icon_gift.svg
+- assets/ui/icons/icon_check.svg
+
+Задача по UI:
+- сделать интерфейс ближе к визуальному референсу;
+- слева правила/ник;
+- справа leaderboard/награда;
+- game frame в центре;
+- на мобильной версии скрыть боковые панели и оставить игру full-screen.
+
+Effects:
+- assets/effects/blue_energy_trail.png
+- assets/effects/energy_spark_burst.png
+
+Использовать:
+- blue_energy_trail за банкой;
+- spark burst при сборе энергии/пролёте через портал/победе.
+
+Критически важно:
+1. Не добавлять PNG как огромные HTML-слои поверх игры.
+2. Не делать коллаж.
+3. Не использовать background-repeat для obstacles.
+4. Все obstacles должны быть игровыми объектами: x, y, width, height.
+5. Все obstacles рисовать внутри Canvas.
+6. Все изображения preload до старта игры.
+7. Не создавать Image в каждом кадре.
+8. Масштабировать ассеты только при init/resize.
+9. Использовать requestAnimationFrame + deltaTime.
+10. Hitbox героя и препятствий должен быть честным и проще визуального контура.
+
+Плавность:
+- Проверь requestAnimationFrame.
+- Проверь deltaTime.
+- Ограничь max delta.
+- Убери лишние перерисовки.
+- Не применяй тяжёлые CSS blur/filter поверх Canvas.
+- Цель: стабильное ощущение 60 FPS.
+
+После завершения напиши:
+1. какие файлы изменил;
+2. какие ассеты подключил;
+3. как использовал главный фон;
+4. как использовал parallax layers;
+5. какие obstacle assets реально задействованы;
+6. какие UI assets задействованы;
+7. что можно улучшить следующим этапом.

@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta
+      name="description"
+      content="Flipp Bull - premium arcade tap-to-fly game for Red Bull open air in Tyumen."
+    />
+    <title>Flipp Bull</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="game.js" defer></script>
+  </head>
+  <body>
+    <main class="app-shell" aria-label="Flipp Bull game">
+      <section class="desktop-panel panel-left" aria-label="Правила игры">
+        <img
+          class="brand-logo"
+          src="assets/ui/components/flipp_bull_logo.svg"
+          alt="Flipp Bull"
+          width="180"
+          height="86"
+        />
+        <p class="eyebrow">Red Bull open air / Tyumen</p>
+        <h2>Лети через ночную сцену</h2>
+        <p>
+          Тап, клик или пробел дают импульс вверх. Держи баночку в проходе между
+          stage-tech препятствиями и набери 20 очков до награды.
+        </p>
+        <div class="panel-steps">
+          <span>01 Ник</span>
+          <span>02 Полет</span>
+          <span>03 20 очков</span>
+          <span>04 Награда</span>
+        </div>
+        <div class="panel-profile">
+          <span>НИК</span>
+          <strong id="desktopNickname">PLAYER</strong>
+          <small>Рекорд: <b id="desktopBest">0</b></small>
+        </div>
+      </section>
+
+      <section class="game-frame" id="gameFrame" aria-label="Игровое поле">
+        <canvas id="gameCanvas" aria-label="Flipp Bull canvas game"></canvas>
+
+        <div class="game-hud" id="gameHud" hidden>
+          <div class="hud-row hud-top">
+          <div class="hud-chip">
+            <span>РЕКОРД</span>
+            <strong><span id="hudBest">0</span><img src="assets/ui/icons/icon_crown.svg" alt="" /></strong>
+          </div>
+          <div class="hud-score" id="hudScore">0</div>
+          <div class="hud-actions">
+            <img class="hud-icon" src="assets/ui/icons/icon_lightning.svg" alt="" />
+            <div class="energy-meter" aria-label="Энергия">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+            <button class="icon-button" id="pauseButton" type="button" aria-label="Пауза">
+              <img src="assets/ui/icons/icon_pause.svg" alt="" />
+            </button>
+          </div>
+          </div>
+          <div class="hud-row hud-bottom">
+            <div class="progress-wrap">
+              <div class="progress-meta">
+                <span id="hudNickname">PLAYER</span>
+                <span id="hudProgressText">0 / 20 очков</span>
+              </div>
+              <div class="progress-track" aria-hidden="true">
+                <span id="hudProgressFill"></span>
+              </div>
+            </div>
+            <p>Тапай, чтобы лететь.</p>
+          </div>
+        </div>
+
+        <section class="screen screen-nickname" id="nicknameScreen">
+          <div class="screen-stack">
+            <img class="screen-logo" src="assets/ui/components/flipp_bull_logo.svg" alt="Flipp Bull" />
+            <h1>ПРИДУМАЙ НИК</h1>
+            <form class="nickname-form" id="nicknameForm" novalidate>
+              <label for="nicknameInput">Твой ник</label>
+              <input
+                id="nicknameInput"
+                name="nickname"
+                type="text"
+                inputmode="text"
+                autocomplete="nickname"
+                maxlength="16"
+                placeholder="NightBull_72"
+              />
+              <p class="form-error" id="nicknameError" aria-live="polite"></p>
+              <button class="primary-button" type="submit">СОХРАНИТЬ И ИГРАТЬ</button>
+            </form>
+            <p class="fine-print">Ник будет отображаться в лидерборде</p>
+          </div>
+        </section>
+
+        <section class="screen screen-start" id="startScreen" hidden>
+          <div class="screen-stack start-stack">
+            <div class="welcome-hero">
+              <img class="screen-logo" src="assets/ui/components/flipp_bull_logo.svg" alt="Flipp Bull" />
+              <h1>
+                ПРОЛЕТИ <mark>20</mark> ПРЕПЯТСТВИЙ
+                <span>И ПОЛУЧИ БАНКУ RED BULL</span>
+              </h1>
+              <p class="subtitle">После награды продолжай играть и ставь новые рекорды.</p>
+            </div>
+
+            <div class="player-card">
+              <div>
+                <span>Игрок</span>
+                <strong id="startNickname">PLAYER</strong>
+              </div>
+              <div>
+                <span>Рекорд</span>
+                <strong id="startBest">0</strong>
+              </div>
+              <div>
+                <span>Цель</span>
+                <strong>20</strong>
+              </div>
+            </div>
+
+            <p class="rule-copy">
+              Тапай, чтобы лететь. Пролетай между препятствиями. 20 очков = 1 банка Red Bull.
+            </p>
+
+            <div class="welcome-reward">
+              <span>НАГРАДА</span>
+              <strong>1 банка Red Bull</strong>
+            </div>
+
+            <div class="button-grid">
+              <button class="primary-button" id="startButton" type="button">ИГРАТЬ</button>
+              <button class="secondary-button" id="leaderboardButton" type="button">
+                ТОП ИГРОКОВ
+              </button>
+              <button class="secondary-button" id="changeNickButton" type="button">
+                СМЕНИТЬ НИК
+              </button>
+            </div>
+
+            <button class="text-link-button" id="rulesButton" type="button">Как играть</button>
+          </div>
+        </section>
+
+        <section class="screen screen-pause" id="pauseScreen" hidden>
+          <div class="mini-dialog">
+            <p class="eyebrow">Пауза</p>
+            <h2>ПОЛЕТ ЗАМЕР</h2>
+            <button class="primary-button" id="resumeButton" type="button">ПРОДОЛЖИТЬ</button>
+            <button class="secondary-button" id="pauseHomeButton" type="button">НА СТАРТ</button>
+          </div>
+        </section>
+
+        <section class="screen screen-gameover" id="gameOverScreen" hidden>
+          <div class="screen-stack">
+            <p class="eyebrow" id="newRecordLabel">Flipp Bull</p>
+            <h1 id="resultTitle">ПОЧТИ ДОЛЕТЕЛ!</h1>
+            <div class="result-grid">
+              <div>
+                <span>Игрок</span>
+                <strong id="loseNickname">PLAYER</strong>
+              </div>
+              <div>
+                <span>Счет</span>
+                <strong id="loseScore">0</strong>
+              </div>
+              <div>
+                <span>Рекорд</span>
+                <strong id="loseBest">0</strong>
+              </div>
+              <div>
+                <span>До награды</span>
+                <strong id="loseRemaining">20</strong>
+              </div>
+            </div>
+            <p class="claim-copy" id="resultMessage" hidden></p>
+            <div class="button-grid">
+              <button class="primary-button" id="retryButton" type="button">ЕЩЕ РАЗ</button>
+              <button class="secondary-button" id="homeButton" type="button">НА СТАРТ</button>
+              <button class="secondary-button" id="gameOverLeaderboardButton" type="button">
+                ЛИДЕРБОРД
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen screen-win" id="winScreen" hidden>
+          <div class="screen-stack reward-stack">
+            <div>
+              <p class="eyebrow">Flipp Bull reward</p>
+              <h1 id="winTitle">НАГРАДА ОТКРЫТА!</h1>
+              <p class="reward-title" id="winRewardTitle">Ты пролетел 20+ препятствий и получил право на 1 банку Red Bull</p>
+            </div>
+
+            <div class="reward-card">
+              <img
+                class="qr-placeholder"
+                src="assets/ui/components/qr_placeholder.svg"
+                alt="QR-заглушка"
+                width="112"
+                height="112"
+              />
+              <div class="reward-info">
+                <span id="winNickname">PLAYER</span>
+                <strong id="winScore">20 очков</strong>
+                <em id="winBest">Рекорд: 20</em>
+              </div>
+            </div>
+
+            <p class="claim-copy" id="claimCopy">Покажи экран бармену</p>
+            <img
+              class="reward-check"
+              id="rewardCheck"
+              src="assets/ui/icons/icon_check.svg"
+              alt="Награда активирована"
+              hidden
+            />
+            <div class="timer-pill" id="rewardTimer">24:00:00</div>
+            <button class="primary-button" id="claimButton" type="button">ЗАБРАТЬ НАГРАДУ</button>
+            <button class="secondary-button" id="winHomeButton" type="button">ЕЩЁ РАЗ</button>
+            <p class="fine-print">После награды продолжай играть и ставь новые рекорды.</p>
+          </div>
+        </section>
+      </section>
+
+      <aside class="desktop-panel panel-right" aria-label="Лидерборд и награда">
+        <div>
+          <p class="eyebrow"><img src="assets/ui/icons/icon_crown.svg" alt="" /> Топ игроков</p>
+          <ol class="side-leaderboard" id="sideLeaderboard"></ol>
+        </div>
+        <div class="reward-panel">
+          <span><img src="assets/ui/icons/icon_gift.svg" alt="" /> Награда</span>
+          <strong id="sideRewardStatus">20 очков до баночки</strong>
+          <small id="sideRewardNickname">Игрок не выбран</small>
+        </div>
+      </aside>
+    </main>
+
+    <div class="modal" id="leaderboardModal" hidden>
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="leaderboardTitle">
+        <button class="icon-button modal-close" id="closeLeaderboardButton" type="button" aria-label="Закрыть">
+          X
+        </button>
+        <p class="eyebrow">Local top 10</p>
+        <h2 id="leaderboardTitle">ЛИДЕРБОРД</h2>
+        <ol class="leaderboard-list" id="leaderboardList"></ol>
+      </div>
+    </div>
+
+    <div class="modal" id="rulesModal" hidden>
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+        <button class="icon-button modal-close" id="closeRulesButton" type="button" aria-label="Закрыть">
+          X
+        </button>
+        <p class="eyebrow">Как играть</p>
+        <h2 id="rulesTitle">ПРАВИЛА</h2>
+        <div class="rules-list">
+          <p>Тапай по экрану, кликай мышью или нажимай пробел.</p>
+          <p>Каждый тап подбрасывает баночку вверх, без тапа она падает.</p>
+          <p>Пролетай через световые проходы и набери 20 очков для награды.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

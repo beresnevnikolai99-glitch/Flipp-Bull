@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 260">
+  <defs>
+    <linearGradient id="b" x1="0" x2="1">
+      <stop stop-color="#1EA7FF"/>
+      <stop offset="1" stop-color="#63D8FF"/>
+    </linearGradient>
+    <linearGradient id="r" x1="0" x2="1">
+      <stop stop-color="#FF263C"/>
+      <stop offset="1" stop-color="#FF7A18"/>
+    </linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="640" height="260" fill="none"/>
+  <text x="34" y="104" font-family="Arial Black, Impact, sans-serif" font-size="86" font-style="italic" fill="url(#b)" filter="url(#glow)">FLIPP</text>
+  <text x="34" y="198" font-family="Arial Black, Impact, sans-serif" font-size="94" font-style="italic" fill="url(#r)" filter="url(#glow)">BULL</text>
+  <path d="M32 217h170M32 232h130M32 247h90M418 217h170M458 232h130M498 247h90" stroke="#E21B2D" stroke-width="10" stroke-linecap="round"/>
+</svg>

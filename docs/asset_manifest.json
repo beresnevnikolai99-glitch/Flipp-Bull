@@ -1,0 +1,46 @@
+{
+  "version": "v3_full",
+  "purpose": "Expanded Flipp Bull asset pack for Codex visual upgrade",
+  "main_background": "assets/backgrounds/bg_main_tyumen_openair_approved.png",
+  "background_layers": [
+    "assets/backgrounds/bg_layer_far_bridge_skyline.png",
+    "assets/backgrounds/bg_layer_mid_city_openair.png",
+    "assets/backgrounds/bg_layer_front_crowd_barrier.png"
+  ],
+  "hero": [
+    "assets/hero/hero_can_idle.png",
+    "assets/hero/hero_can_flap_up.png",
+    "assets/hero/hero_can_falling.png"
+  ],
+  "obstacles": [
+    "assets/obstacles/obstacle_speaker_tower.png",
+    "assets/obstacles/obstacle_speaker_tower_game.png",
+    "assets/obstacles/obstacle_speaker_tower_hanging.png",
+    "assets/obstacles/obstacle_stage_gate_full.png",
+    "assets/obstacles/obstacle_neon_portal_ring.png",
+    "assets/obstacles/obstacle_laser_barrier.svg",
+    "assets/obstacles/obstacle_stage_column_canvas_reference.svg"
+  ],
+  "effects": [
+    "assets/effects/blue_energy_trail.png",
+    "assets/effects/energy_spark_burst.png"
+  ],
+  "ui": [
+    "assets/ui/components/flipp_bull_logo.svg",
+    "assets/ui/components/glass_panel.svg",
+    "assets/ui/components/progress_bar_frame.svg",
+    "assets/ui/components/qr_placeholder.svg",
+    "assets/ui/icons/icon_pause.svg",
+    "assets/ui/icons/icon_lightning.svg",
+    "assets/ui/icons/icon_crown.svg",
+    "assets/ui/icons/icon_gift.svg",
+    "assets/ui/icons/icon_check.svg"
+  ],
+  "screen_references": [
+    "screen_nickname_reference.svg",
+    "screen_start_reference.svg",
+    "screen_lose_reference.svg",
+    "screen_win_reference.svg",
+    "screen_claimed_reference.svg"
+  ]
+}

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 640">
+  <defs><filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+  <rect width="360" height="640" rx="24" fill="#050B18"/>
+  <rect x="18" y="18" width="324" height="604" rx="22" fill="#081A33" fill-opacity=".72" stroke="#1EA7FF" stroke-opacity=".45" stroke-width="2"/>
+  <text x="180" y="150" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="30" fill="#FFFFFF" filter="url(#glow)">НАГРАДА АКТИВИРОВАНА!</text>
+  <text x="180" y="245" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" fill="#AFC7E8">Покажи этот экран бармену</text>
+  <rect x="45" y="470" width="270" height="62" rx="12" fill="#FFD200"/>
+  <text x="180" y="510" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="18" fill="#050B18">НА СТАРТ</text>
+</svg>
