@@ -15,6 +15,8 @@ const DPR_LIMIT = 2;
 const MOBILE_DPR_LIMIT = 1.5;
 const DEBUG = false;
 const DEBUG_PERFORMANCE = false;
+const SUPABASE_URL = "https://iecwycdynqcshgrrycyz.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_4s9x6ZTxNKMHzbUl-bM4uA_GhVy-n9e";
 
 const MIN_NICKNAME = 3;
 const MAX_NICKNAME = 16;
@@ -25,6 +27,8 @@ const NICKNAME_PATTERN = /^[A-Za-zА-Яа-яЁё0-9_]{3,16}$/u;
 
 const STORAGE_KEYS = {
   nickname: "flippBull_nickname",
+  deviceId: "flippBull_device_id",
+  playerId: "flippBull_player_id",
   bestScore: "flippBull_bestScore",
   leaderboard: "flippBull_leaderboard",
   hasWon: "flippBull_hasWon",
@@ -64,6 +68,18 @@ const ASSET_PATHS = {
     burst: "assets/effects/energy_spark_burst.png",
   },
 };
+
+const supabaseClient = createSupabaseClient();
+
+function createSupabaseClient() {
+  const factory = window.supabase?.createClient;
+  if (typeof factory !== "function") {
+    console.warn("Supabase client is unavailable. Using local leaderboard fallback.");
+    return null;
+  }
+
+  return factory(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+}
 
 // DOM
 const $ = (id) => document.getElementById(id);
@@ -190,6 +206,8 @@ function setNestedAsset(target, keyPath, image) {
 const state = {
   screen: "nickname",
   nickname: "",
+  deviceId: "",
+  playerId: "",
   score: 0,
   bestScore: 0,
   newRecord: false,
@@ -280,16 +298,186 @@ function storageGetJson(key, fallback) {
 
 function loadPersistentState() {
   state.leaderboard = readLeaderboard();
+  state.deviceId = getOrCreateDeviceId();
+  state.playerId = storageGet(STORAGE_KEYS.playerId, "").trim();
 
   const savedNickname = storageGet(STORAGE_KEYS.nickname, "").trim();
   state.nickname = NICKNAME_PATTERN.test(savedNickname) ? savedNickname : "";
-  state.bestScore = state.nickname ? getBestForNickname(state.nickname) : 0;
+  state.bestScore = state.nickname
+    ? Math.max(getBestForNickname(state.nickname), Number(storageGet(STORAGE_KEYS.bestScore, "0")) || 0)
+    : 0;
   state.hasWon = storageGet(STORAGE_KEYS.hasWon, "false") === "true";
   state.winDate = storageGet(STORAGE_KEYS.winDate, "");
   state.rewardClaimed = storageGet(STORAGE_KEYS.rewardClaimed, "false") === "true";
 
   if (state.nickname) {
     storageSet(STORAGE_KEYS.bestScore, String(state.bestScore));
+  }
+}
+
+function getOrCreateDeviceId() {
+  const savedDeviceId = storageGet(STORAGE_KEYS.deviceId, "").trim();
+  if (savedDeviceId) {
+    return savedDeviceId;
+  }
+
+  const deviceId =
+    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : `device_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+  storageSet(STORAGE_KEYS.deviceId, deviceId);
+  return deviceId;
+}
+
+function warnSupabase(message, error) {
+  console.warn(`[Supabase] ${message}`, error);
+}
+
+function isSupabaseReady() {
+  return Boolean(supabaseClient);
+}
+
+async function ensureSupabasePlayer(nickname = state.nickname) {
+  if (!isSupabaseReady() || !nickname) {
+    return "";
+  }
+
+  const safeNickname = nickname.trim();
+  if (!NICKNAME_PATTERN.test(safeNickname)) {
+    return "";
+  }
+
+  try {
+    const localPlayerId = storageGet(STORAGE_KEYS.playerId, "").trim();
+    const playerId = localPlayerId || state.playerId;
+
+    if (playerId) {
+      const { data, error } = await supabaseClient
+        .from("players")
+        .update({ nickname: safeNickname, device_id: state.deviceId })
+        .eq("id", playerId)
+        .select("id")
+        .maybeSingle();
+
+      if (!error && data?.id) {
+        state.playerId = data.id;
+        storageSet(STORAGE_KEYS.playerId, data.id);
+        return data.id;
+      }
+
+      if (error) {
+        warnSupabase("Could not update local player_id; trying nickname lookup.", error);
+      }
+    }
+
+    const { data: existingPlayer, error: lookupError } = await supabaseClient
+      .from("players")
+      .select("id")
+      .eq("nickname", safeNickname)
+      .limit(1)
+      .maybeSingle();
+
+    if (lookupError) {
+      warnSupabase("Could not find player by nickname.", lookupError);
+    }
+
+    if (existingPlayer?.id) {
+      state.playerId = existingPlayer.id;
+      storageSet(STORAGE_KEYS.playerId, existingPlayer.id);
+      await supabaseClient.from("players").update({ device_id: state.deviceId }).eq("id", existingPlayer.id);
+      return existingPlayer.id;
+    }
+
+    const { data: createdPlayer, error: insertError } = await supabaseClient
+      .from("players")
+      .insert({ nickname: safeNickname, device_id: state.deviceId })
+      .select("id")
+      .single();
+
+    if (insertError) {
+      warnSupabase("Could not create player. Local profile is still available.", insertError);
+      return "";
+    }
+
+    state.playerId = createdPlayer.id;
+    storageSet(STORAGE_KEYS.playerId, createdPlayer.id);
+    return createdPlayer.id;
+  } catch (error) {
+    warnSupabase("Player sync failed. Using local player fallback.", error);
+    return "";
+  }
+}
+
+async function submitScoreToSupabase(score) {
+  if (!isSupabaseReady() || !state.nickname) {
+    return;
+  }
+
+  try {
+    const playerId = state.playerId || (await ensureSupabasePlayer(state.nickname));
+    if (!playerId) {
+      return;
+    }
+
+    const safeScore = Math.max(0, Math.floor(score));
+    const { error } = await supabaseClient.from("scores").insert({
+      player_id: playerId,
+      nickname: state.nickname,
+      score: safeScore,
+    });
+
+    if (error) {
+      warnSupabase("Could not submit score. Local leaderboard fallback is still updated.", error);
+      return;
+    }
+
+    await refreshLeaderboardFromSupabase();
+  } catch (error) {
+    warnSupabase("Score submit failed. Local leaderboard fallback is still updated.", error);
+  }
+}
+
+async function refreshLeaderboardFromSupabase() {
+  if (!isSupabaseReady()) {
+    return false;
+  }
+
+  try {
+    const { data, error } = await supabaseClient
+      .from("leaderboard")
+      .select("*")
+      .order("best_score", { ascending: false })
+      .limit(10);
+
+    if (error) {
+      warnSupabase("Could not load leaderboard view. Using local leaderboard fallback.", error);
+      return false;
+    }
+
+    const remoteLeaderboard = sanitizeLeaderboard(
+      (data || []).map((entry) => ({
+        nickname: entry.nickname,
+        score: entry.best_score ?? entry.score,
+      })),
+    );
+
+    if (!remoteLeaderboard.length) {
+      return false;
+    }
+
+    state.leaderboard = remoteLeaderboard;
+    saveLeaderboard();
+    if (state.nickname) {
+      const remoteBestScore = getBestForNickname(state.nickname);
+      state.bestScore = Math.max(state.bestScore, remoteBestScore);
+      storageSet(STORAGE_KEYS.bestScore, String(state.bestScore));
+    }
+    renderLeaderboards();
+    updateStartScreen();
+    return true;
+  } catch (error) {
+    warnSupabase("Leaderboard sync failed. Using local leaderboard fallback.", error);
+    return false;
   }
 }
 
@@ -321,6 +509,7 @@ function saveNickname(rawNickname) {
   dom.nicknameError.textContent = "";
   updateAllUi();
   showScreen("start");
+  ensureSupabasePlayer(nickname).then(() => refreshLeaderboardFromSupabase());
   return true;
 }
 
@@ -912,6 +1101,7 @@ function finishRun() {
   }
 
   updateLeaderboard(state.nickname, state.score);
+  submitScoreToSupabase(state.score);
 
   if (state.score >= WIN_SCORE) {
     if (!state.rewardUnlockedThisRun) {
@@ -1805,6 +1995,7 @@ function showScreen(screenName) {
 function openLeaderboard() {
   renderLeaderboards();
   dom.leaderboardModal.hidden = false;
+  refreshLeaderboardFromSupabase();
 }
 
 function closeLeaderboard() {
@@ -1973,6 +2164,11 @@ async function init() {
   dom.nicknameInput.value = state.nickname;
   updateAllUi();
   showScreen(state.nickname ? "start" : "nickname");
+  if (state.nickname) {
+    ensureSupabasePlayer(state.nickname).then(() => refreshLeaderboardFromSupabase());
+  } else {
+    refreshLeaderboardFromSupabase();
+  }
   requestAnimationFrame(tick);
 }
 
