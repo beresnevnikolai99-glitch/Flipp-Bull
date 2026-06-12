@@ -445,25 +445,23 @@ async function refreshLeaderboardFromSupabase() {
   try {
     const { data, error } = await supabaseClient
       .from("leaderboard")
-      .select("*")
+      .select("player_id,nickname,best_score,games_played,last_played_at")
       .order("best_score", { ascending: false })
       .limit(10);
 
     if (error) {
-      warnSupabase("Could not load leaderboard view. Using local leaderboard fallback.", error);
+      console.warn("Supabase leaderboard failed to load. Using local leaderboard fallback.", error);
       return false;
     }
+
+    console.log("Supabase leaderboard loaded", Array.isArray(data) ? data.length : 0);
 
     const remoteLeaderboard = sanitizeLeaderboard(
       (data || []).map((entry) => ({
         nickname: entry.nickname,
-        score: entry.best_score ?? entry.score,
+        score: entry.best_score,
       })),
     );
-
-    if (!remoteLeaderboard.length) {
-      return false;
-    }
 
     state.leaderboard = remoteLeaderboard;
     saveLeaderboard();
@@ -578,6 +576,13 @@ function renderLeaderboards() {
   const topTen = state.leaderboard.slice(0, 10);
   dom.leaderboardList.innerHTML = "";
   dom.sideLeaderboard.innerHTML = "";
+
+  if (!topTen.length) {
+    const emptyItem = createLeaderboardItem({ nickname: "Пока нет результатов", score: "" }, "-");
+    dom.leaderboardList.appendChild(emptyItem);
+    dom.sideLeaderboard.appendChild(createLeaderboardItem({ nickname: "Пока нет результатов", score: "" }, "-"));
+    return;
+  }
 
   topTen.forEach((entry, index) => {
     dom.leaderboardList.appendChild(createLeaderboardItem(entry, index + 1));
